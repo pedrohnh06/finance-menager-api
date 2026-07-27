@@ -1,1 +1,4 @@
 .venv/
+financeiro.db
+__pycache__/
+*.pyc 
