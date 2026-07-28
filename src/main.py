@@ -33,3 +33,19 @@ def mostrar_categorias(db: Session = Depends(get_db)):
     result = db.query(models.Categoria).all()
 
     return result
+
+@app.post("/transacoes", response_model=schemas.TransacaoResponse)
+def criar_transacao(transacao: schemas.TransacaoCreate, db: Session = Depends(get_db)):
+    nova_transacao = models.Transacao(descricao=transacao.descricao, valor=transacao.valor, 
+    tipo=transacao.tipo, categoria_id=transacao.categoria_id)
+    db.add(nova_transacao)
+    db.commit()
+    db.refresh(nova_transacao)
+
+    return nova_transacao
+
+@app.get("/transacoes", response_model=list[schemas.TransacaoResponse])
+def mostrar_transacao(db: Session = Depends(get_db)):
+    result = db.query(models.Transacao).all()
+
+    return result
