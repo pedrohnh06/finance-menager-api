@@ -1,16 +1,11 @@
 from fastapi import APIRouter, Depends
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
-from src import models, schemas, database
+from src import models, schemas
+from src.database import get_db
 
 router = APIRouter()
 
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/", response_model=schemas.TransacaoResponse)
 def criar_transacao(transacao: schemas.TransacaoCreate, db: Session = Depends(get_db)):

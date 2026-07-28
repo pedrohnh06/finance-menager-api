@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from src import models, schemas
-from database import get_db
+from src.database import get_db
 
 router = APIRouter()
 
