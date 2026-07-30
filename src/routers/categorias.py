@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from src import models, schemas
@@ -21,3 +21,25 @@ def mostrar_categorias(db: Session = Depends(get_db)):
     result = db.query(models.Categoria).all()
 
     return result
+
+@router.delete("/{categoria_id}")
+def deletar_categoria(categoria_id: int, db: Session = Depends(get_db)):
+    buscador = db.query(models.Categoria).filter(models.Categoria.id == categoria_id).first()
+    
+    if not buscador:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    else:
+        db.delete(buscador)
+        db.commit()
+        return {"mensagem": "Categoria deletada com sucesso!"}
+
+@router.put("/{categoria_id}", response_model=schemas.CategoriaResponse)
+def atualizar_categoria(categoria_id: int, categoria:schemas.CategoriaCreate, db: Session = Depends(get_db)):
+    buscador = db.query(models.Categoria).filter(models.Categoria.id == categoria_id).first()
+    if not buscador:
+        raise HTTPException(status_code=404, detail="Categoia não encontrada")
+    else:
+        buscador.nome = categoria.nome
+        db.commit()
+        db.refresh(buscador)
+        return buscador
