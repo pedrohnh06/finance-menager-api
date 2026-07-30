@@ -1,8 +1,9 @@
 # pyrefly: ignore [missing-import]
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 # pyrefly: ignore [missing-import]
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import  relationship
 from src.database import Base
+from datetime import datetime
 
 
 class Categoria(Base):
@@ -26,3 +27,5 @@ class Transacao(Base):
     tipo = Column(String)
 
     categoria = relationship("Categoria")
+
+    data = Column(DateTime, default=datetime.now)

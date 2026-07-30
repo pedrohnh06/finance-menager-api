@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+from sqlalchemy import func
 from src import models, schemas
 from src.database import get_db
+from typing import Optional
 
 router = APIRouter()
 
@@ -18,10 +21,30 @@ def criar_transacao(transacao: schemas.TransacaoCreate, db: Session = Depends(ge
     return nova_transacao
 
 @router.get("/", response_model=list[schemas.TransacaoResponse])
-def mostrar_transacao(db: Session = Depends(get_db)):
-    result = db.query(models.Transacao).all()
+def mostrar_transacao(tipo: Optional[str] = None,
+ categoria_id: Optional[int] = None,
+ db: Session = Depends(get_db)):
 
-    return result
+    query = db.query(models.Transacao)
+
+    if tipo is not None:
+        query = query.filter(models.Transacao.tipo == tipo)
+    if categoria_id is not None:
+        query = query.filter(models.Transacao.categoria_id == categoria_id)
+
+    return query.all()
+
+@router.get("/resumo")
+def resumo_financeiro(db: Session = Depends(get_db)):
+    soma_despesas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.tipo == "despesa").scalar() or 0
+    soma_receitas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.tipo == "receita").scalar() or 0
+    saldo_total = soma_receitas - soma_despesas
+
+    return {
+        "total_receitas": soma_receitas,
+        "total_despesas": soma_despesas,
+        "saldo_total": saldo_total
+    }
 
 @router.delete("/{transacao_id}")
 def deletar_transacao(transacao_id: int, db: Session = Depends(get_db)):
@@ -50,4 +73,4 @@ def atualizar_transacao(transacao_id: int, transacao: schemas.TransacaoUpdate, d
             buscador.categoria_id = transacao.categoria_id
         db.commit()
         db.refresh(buscador)
-        return buscador                                     
+        return buscador           

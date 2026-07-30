@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class CategoriaCreate(BaseModel):
     nome: str
@@ -16,6 +17,7 @@ class TransacaoCreate(BaseModel):
     valor: float
     tipo: str
     categoria_id: int
+    data: Optional[datetime] = None
 
 class TransacaoResponse(BaseModel):
     id: int
@@ -23,6 +25,7 @@ class TransacaoResponse(BaseModel):
     valor: float
     tipo: str
     categoria_id: int
+    data: datetime
 
     class Config:
         from_attributes = True
@@ -32,3 +35,4 @@ class TransacaoUpdate(BaseModel):
     valor: Optional[float] = None
     tipo: Optional[str] = None
     categoria_id: Optional[int] = None
+    data: Optional[datetime] = None
