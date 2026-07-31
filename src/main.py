@@ -1,7 +1,7 @@
-from src.routers import categorias, transacoes
+from src.routers import categorias, transacoes, usuario
 from fastapi import FastAPI
 from src import models, database
-# pyrefly: ignore [missing-import]
+
 
 
 app = FastAPI()
@@ -14,3 +14,4 @@ models.Base.metadata.create_all(bind=database.engine)
 
 app.include_router(categorias.router, prefix="/categorias", tags=["Categorias"])
 app.include_router(transacoes.router, prefix="/transacoes", tags=["Transações"])
+app.include_router(usuario.router, prefix="/usuario", tags=["Usuários"])

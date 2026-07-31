@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+# Categoria
+
 class CategoriaCreate(BaseModel):
     nome: str
 
@@ -18,6 +20,8 @@ class TransacaoCreate(BaseModel):
     tipo: str
     categoria_id: int
     data: Optional[datetime] = None
+
+# Transacao
 
 class TransacaoResponse(BaseModel):
     id: int
@@ -36,3 +40,25 @@ class TransacaoUpdate(BaseModel):
     tipo: Optional[str] = None
     categoria_id: Optional[int] = None
     data: Optional[datetime] = None
+
+# Usuario
+
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: str
+    senha: str
+
+class UsuarioResponse(BaseModel):
+    id: int
+    nome: str
+    email: str
+
+    class Config:
+        from_attributes = True
+
+# Senha
+
+class Token(BaseModel):
+    acess_token: str
+    token_type: str
+    
