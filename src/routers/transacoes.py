@@ -6,12 +6,15 @@ from sqlalchemy import func
 from src import models, schemas
 from src.database import get_db
 from typing import Optional
+from src import auth
 
 router = APIRouter()
 
 
 @router.post("/", response_model=schemas.TransacaoResponse)
-def criar_transacao(transacao: schemas.TransacaoCreate, db: Session = Depends(get_db)):
+def criar_transacao(transacao: schemas.TransacaoCreate,
+ db: Session = Depends(get_db),
+ email_usuario: str = Depends(auth.obter_usuario_atual)):
     nova_transacao = models.Transacao(descricao=transacao.descricao, valor=transacao.valor, 
     tipo=transacao.tipo, categoria_id=transacao.categoria_id)
     db.add(nova_transacao)

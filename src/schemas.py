@@ -59,6 +59,6 @@ class UsuarioResponse(BaseModel):
 # Senha
 
 class Token(BaseModel):
-    acess_token: str
+    access_token: str
     token_type: str
     
