@@ -292,7 +292,7 @@ async function handleAddTransaction(event) {
 
         if (idEdit) {
             url = `${API_URL}/transacoes/${idEdit}`;
-            method = 'PUT'; // Assumindo PUT para update
+            method = 'PATCH'; // Transações usam PATCH
         }
 
         const res = await fetchWithAuth(url, {
