@@ -14,9 +14,14 @@ router = APIRouter()
 @router.post("/", response_model=schemas.TransacaoResponse)
 def criar_transacao(transacao: schemas.TransacaoCreate,
  db: Session = Depends(get_db),
- email_usuario: str = Depends(auth.obter_usuario_atual)):
-    nova_transacao = models.Transacao(descricao=transacao.descricao, valor=transacao.valor, 
-    tipo=transacao.tipo, categoria_id=transacao.categoria_id)
+ usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+
+    nova_transacao = models.Transacao(descricao=transacao.descricao,
+    valor=transacao.valor, 
+    tipo=transacao.tipo,
+    categoria_id=transacao.categoria_id,
+    usuario_id=usuario_logado.id)
+
     db.add(nova_transacao)
     db.commit()
     db.refresh(nova_transacao)
@@ -26,9 +31,10 @@ def criar_transacao(transacao: schemas.TransacaoCreate,
 @router.get("/", response_model=list[schemas.TransacaoResponse])
 def mostrar_transacao(tipo: Optional[str] = None,
  categoria_id: Optional[int] = None,
- db: Session = Depends(get_db)):
+ db: Session = Depends(get_db),
+ usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    query = db.query(models.Transacao).filter(models.Transacao.usuario_id == usuario_logado.id)
 
-    query = db.query(models.Transacao)
 
     if tipo is not None:
         query = query.filter(models.Transacao.tipo == tipo)
@@ -38,9 +44,10 @@ def mostrar_transacao(tipo: Optional[str] = None,
     return query.all()
 
 @router.get("/resumo")
-def resumo_financeiro(db: Session = Depends(get_db)):
-    soma_despesas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.tipo == "despesa").scalar() or 0
-    soma_receitas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.tipo == "receita").scalar() or 0
+def resumo_financeiro(db: Session = Depends(get_db),
+usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    soma_despesas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.usuario_id.tipo == "despesa").scalar() or 0
+    soma_receitas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.usuario_id.tipo == "receita").scalar() or 0
     saldo_total = soma_receitas - soma_despesas
 
     return {

@@ -2,8 +2,6 @@ from src.routers import categorias, transacoes, usuario, login
 from fastapi import FastAPI
 from src import models, database
 
-
-
 app = FastAPI()
 
 @app.get("/")

@@ -1,5 +1,8 @@
 # pyrefly: ignore [missing-import]
 from passlib.context import CryptContext
+# pyrefly: ignore [missing-import]
+from sqlalchemy.orm import Session
+from src import database, models
 from jose import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi.security import OAuth2PasswordBearer
@@ -31,15 +34,18 @@ def criar_token_acesso(dados: dict):
 
     return token_jwt
 
-def obter_usuario_atual(token: str = Depends(oauth2_scheme)):
+def obter_usuario_atual(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub") 
 
         if email is None:
             raise HTTPException(status_code=401, detail="Pulseira sem nome(Token inválido)")
+        usuario = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+        if usuario is None:
+            raise HTTPException(status_code=401, detail="Usuário não encontrado")
 
-        return email 
-
+        return usuario
+            
     except JWTError:
-        raise HTTPException(status_code=401, detail="Pulseira falsa ou vencida")
+        raise HTTPException(status_code=401, detail="Pulseira falsa ou vencida")    

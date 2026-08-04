@@ -13,6 +13,8 @@ class Categoria(Base):
 
     nome = Column(String, unique=True, index=True)
 
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+
 class Transacao(Base):
     __tablename__ = "transacoes"
 
@@ -29,6 +31,8 @@ class Transacao(Base):
     categoria = relationship("Categoria")
 
     data = Column(DateTime, default=datetime.now)
+
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
 
 class Usuario(Base):
     __tablename__ = "usuarios"
