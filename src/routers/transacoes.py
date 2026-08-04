@@ -46,8 +46,24 @@ def mostrar_transacao(tipo: Optional[str] = None,
 @router.get("/resumo")
 def resumo_financeiro(db: Session = Depends(get_db),
 usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
-    soma_despesas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.usuario_id.tipo == "despesa").scalar() or 0
-    soma_receitas = db.query(func.sum(models.Transacao.valor)).filter(models.Transacao.usuario_id.tipo == "receita").scalar() or 0
+
+    soma_despesas = (
+        db.query(func.sum(models.Transacao.valor))
+        .filter(
+            models.Transacao.usuario_id == usuario_logado.id,
+            models.Transacao.tipo == "despesa"
+            ).scalar() or 0
+    )
+
+    soma_receitas = (
+        db.query(func.sum(models.Transacao.valor))
+        .filter(
+        models.Transacao.usuario_id == usuario_logado.id,
+        models.Transacao.tipo == "receita"
+        ).scalar() or 0
+        
+    )
+
     saldo_total = soma_receitas - soma_despesas
 
     return {
@@ -57,8 +73,14 @@ usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
     }
 
 @router.delete("/{transacao_id}")
-def deletar_transacao(transacao_id: int, db: Session = Depends(get_db)):
-    buscador = db.query(models.Transacao).filter(models.Transacao.id == transacao_id).first()
+def deletar_transacao(transacao_id: int, db: Session = Depends(get_db),
+ usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    buscador = db.query(
+        models.Transacao
+        ).filter(
+            models.Transacao.id == transacao_id,
+            models.Transacao.usuario_id == usuario_logado.id
+            ).first()
 
     if not buscador:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
@@ -68,8 +90,16 @@ def deletar_transacao(transacao_id: int, db: Session = Depends(get_db)):
         return {"mensagem": "Transação deletada com sucesso!"}
 
 @router.patch("/{transacao_id}", response_model=schemas.TransacaoResponse)
-def atualizar_transacao(transacao_id: int, transacao: schemas.TransacaoUpdate, db: Session = Depends(get_db)):
-    buscador = db.query(models.Transacao).filter(models.Transacao.id == transacao_id).first()
+def atualizar_transacao(transacao_id: int,
+ transacao: schemas.TransacaoUpdate,
+  db: Session = Depends(get_db),
+  usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    buscador = db.query(
+        models.Transacao
+        ).filter(
+            models.Transacao.id == transacao_id,
+            models.Transacao.usuario_id == usuario_logado.id
+            ).first()
     if not buscador:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
     else:

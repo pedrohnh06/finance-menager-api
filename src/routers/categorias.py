@@ -1,3 +1,4 @@
+from src import auth
 from fastapi import APIRouter, Depends, HTTPException
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
@@ -8,8 +9,13 @@ router = APIRouter()
 
 
 @router.post("/", response_model=schemas.CategoriaResponse)
-def criar_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(get_db)):
-    nova_categoria = models.Categoria(nome=categoria.nome)
+def criar_categoria(categoria: schemas.CategoriaCreate,
+ db: Session = Depends(get_db),
+ usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    nova_categoria = models.Categoria(
+        nome=categoria.nome,
+        usuario_id=usuario_logado.id
+        )
     db.add(nova_categoria)
     db.commit()
     db.refresh(nova_categoria)
@@ -17,14 +23,26 @@ def criar_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(ge
     return nova_categoria
 
 @router.get("/", response_model=list[schemas.CategoriaResponse])
-def mostrar_categorias(db: Session = Depends(get_db)):
-    result = db.query(models.Categoria).all()
+def mostrar_categorias(db: Session = Depends(get_db),
+usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    result = db.query(
+        models.Categoria
+        ).filter(
+        models.Categoria.usuario_id == usuario_logado.id
+    ).all()
 
     return result
 
 @router.delete("/{categoria_id}")
-def deletar_categoria(categoria_id: int, db: Session = Depends(get_db)):
-    buscador = db.query(models.Categoria).filter(models.Categoria.id == categoria_id).first()
+def deletar_categoria(categoria_id: int,
+ db: Session = Depends(get_db),
+ usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    buscador = db.query(
+        models.Categoria
+        ).filter(
+            models.Categoria.id == categoria_id,
+            models.Categoria.usuario_id == usuario_logado.id
+            ).first()
     
     if not buscador:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
@@ -34,8 +52,16 @@ def deletar_categoria(categoria_id: int, db: Session = Depends(get_db)):
         return {"mensagem": "Categoria deletada com sucesso!"}
 
 @router.put("/{categoria_id}", response_model=schemas.CategoriaResponse)
-def atualizar_categoria(categoria_id: int, categoria:schemas.CategoriaCreate, db: Session = Depends(get_db)):
-    buscador = db.query(models.Categoria).filter(models.Categoria.id == categoria_id).first()
+def atualizar_categoria(categoria_id: int,
+ categoria:schemas.CategoriaCreate,
+  db: Session = Depends(get_db),
+  usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    buscador = db.query(
+        models.Categoria
+        ).filter(
+            models.Categoria.id == categoria_id,
+            models.Categoria.usuario_id == usuario_logado.id
+            ).first()
     if not buscador:
         raise HTTPException(status_code=404, detail="Categoia não encontrada")
     else:
