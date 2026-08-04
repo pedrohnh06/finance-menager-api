@@ -2,6 +2,8 @@
 
 Uma API REST moderna para gerenciamento financeiro pessoal, construída com **FastAPI** e **Python**. Este projeto permite que usuários gerenciem suas categorias de gastos e receitas, acompanhem transações detalhadas e obtenham resumos financeiros inteligentes — tudo protegido por autenticação JWT.
 
+🌍 **Deploy**: A API está no ar e pode ser testada no Swagger: [https://finance-menager-api.onrender.com/docs](https://finance-menager-api.onrender.com/docs)
+
 ## 🚀 Tecnologias Utilizadas
 
 - **FastAPI**: Framework web super rápido e moderno.

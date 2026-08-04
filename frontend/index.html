@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTrack - Gestão Inteligente</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Tela de Autenticação -->
+        <div id="auth-screen" class="screen">
+            <div class="auth-card">
+                <img src="logo.png" alt="FinTrack Logo" class="brand-logo">
+                <h1>FinTrack</h1>
+                <p>O seu dinheiro sob controle.</p>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="toggleAuth('login')">Login</button>
+                    <button class="tab-btn" onclick="toggleAuth('register')">Cadastrar</button>
+                </div>
+
+                <!-- Formulário Login -->
+                <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-senha">Senha</label>
+                        <input type="password" id="login-senha" required>
+                    </div>
+                    <button type="submit" class="primary-btn">Entrar</button>
+                </form>
+
+                <!-- Formulário Cadastro -->
+                <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+                    <div class="input-group">
+                        <label for="reg-nome">Nome</label>
+                        <input type="text" id="reg-nome" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-senha">Senha</label>
+                        <input type="password" id="reg-senha" required>
+                    </div>
+                    <button type="submit" class="primary-btn">Criar Conta</button>
+                </form>
+                
+                <p id="auth-msg" class="message"></p>
+            </div>
+        </div>
+
+        <!-- Tela Principal (Dashboard) -->
+        <div id="dashboard-screen" class="screen">
+            <header>
+                <div class="header-content">
+                    <div class="header-brand">
+                        <img src="logo.png" alt="FinTrack Logo" class="header-logo">
+                        <h2>FinTrack</h2>
+                    </div>
+                    <button onclick="logout()" class="outline-btn">Sair</button>
+                </div>
+            </header>
+
+            <main class="dashboard-content">
+                <!-- Cards de Resumo -->
+                <div class="summary-cards">
+                    <div class="card">
+                        <h3>Receitas</h3>
+                        <p id="val-receitas" class="positive">R$ 0,00</p>
+                    </div>
+                    <div class="card">
+                        <h3>Despesas</h3>
+                        <p id="val-despesas" class="negative">R$ 0,00</p>
+                    </div>
+                    <div class="card total-card">
+                        <h3>Saldo Total</h3>
+                        <p id="val-saldo">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="main-grid">
+                    <div class="panels-row">
+                        <!-- Gerenciar Categorias -->
+                        <section class="panel">
+                            <h3>Categorias</h3>
+                            <form id="category-form" onsubmit="handleAddCategoria(event)" style="margin-bottom: 1.5rem;">
+                                <div class="input-row">
+                                    <div class="input-group" style="margin-bottom: 0;">
+                                        <input type="text" id="cat-nome" placeholder="Nova categoria..." required>
+                                    </div>
+                                    <button type="submit" class="primary-btn" style="margin-top: 0; width: auto; padding: 0 1rem;">Add</button>
+                                </div>
+                            </form>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="categories-body">
+                                        <!-- Preenchido via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- Formulário Nova Transação -->
+                        <section class="panel new-transaction">
+                            <h3>Nova Transação</h3>
+                            <form id="transaction-form" onsubmit="handleAddTransaction(event)">
+                                <div class="input-group">
+                                    <label>Descrição</label>
+                                    <input type="text" id="trans-desc" required>
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>Valor</label>
+                                        <input type="number" step="0.01" id="trans-val" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Tipo</label>
+                                        <select id="trans-tipo" required>
+                                            <option value="receita">Receita</option>
+                                            <option value="despesa">Despesa</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Categoria</label>
+                                    <select id="trans-categoria" required>
+                                        <!-- Preenchido via JS -->
+                                    </select>
+                                </div>
+                                <button type="submit" class="primary-btn">Adicionar</button>
+                            </form>
+                        </section>
+                    </div>
+
+                    <!-- Lista de Transações -->
+                    <section class="panel transaction-list">
+                        <h3>Últimas Transações</h3>
+                        <div class="table-container">
+                            <table id="transactions-table">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-body">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

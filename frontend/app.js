@@ -1,0 +1,291 @@
+// Configuração base da API
+const API_URL = "https://finance-menager-api.onrender.com";
+let currentToken = localStorage.getItem("token") || null;
+
+// ==========================================
+// CONTROLE DE TELAS
+// ==========================================
+function toggleAuth(type) {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const tabs = document.querySelectorAll('.tab-btn');
+    
+    document.getElementById('auth-msg').innerText = '';
+
+    if (type === 'login') {
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+        tabs[0].classList.add('active');
+        tabs[1].classList.remove('active');
+    } else {
+        loginForm.classList.remove('active');
+        registerForm.classList.add('active');
+        tabs[0].classList.remove('active');
+        tabs[1].classList.add('active');
+    }
+}
+
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+// Inicialização: Se já tem token, vai pro dashboard
+if (currentToken) {
+    showScreen('dashboard-screen');
+    loadDashboard();
+} else {
+    showScreen('auth-screen');
+}
+
+// ==========================================
+// AUTENTICAÇÃO
+// ==========================================
+async function handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+    const msgEl = document.getElementById('auth-msg');
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append("username", email);
+        formData.append("password", senha);
+
+        const response = await fetch(`${API_URL}/login/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            currentToken = data.access_token;
+            localStorage.setItem("token", currentToken);
+            showScreen('dashboard-screen');
+            loadDashboard();
+        } else {
+            msgEl.innerText = "Email ou senha incorretos.";
+        }
+    } catch (error) {
+        msgEl.innerText = "Erro ao conectar com o servidor.";
+    }
+}
+
+async function handleRegister(event) {
+    event.preventDefault();
+    const nome = document.getElementById('reg-nome').value;
+    const email = document.getElementById('reg-email').value;
+    const senha = document.getElementById('reg-senha').value;
+    const msgEl = document.getElementById('auth-msg');
+
+    try {
+        const response = await fetch(`${API_URL}/usuario/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, email, senha })
+        });
+
+        if (response.ok) {
+            msgEl.innerText = "Cadastro realizado! Faça o login.";
+            msgEl.style.color = "#38a169";
+            toggleAuth('login');
+        } else {
+            const errorData = await response.json();
+            msgEl.innerText = errorData.detail || "Erro ao cadastrar.";
+        }
+    } catch (error) {
+        msgEl.innerText = "Erro ao conectar com o servidor.";
+    }
+}
+
+function logout() {
+    currentToken = null;
+    localStorage.removeItem("token");
+    showScreen('auth-screen');
+}
+
+// ==========================================
+// DASHBOARD & TRANSAÇÕES
+// ==========================================
+async function fetchWithAuth(url, options = {}) {
+    if (!currentToken) return null;
+    
+    options.headers = {
+        ...options.headers,
+        "Authorization": `Bearer ${currentToken}`
+    };
+
+    const res = await fetch(url, options);
+    if (res.status === 401) {
+        logout();
+        throw new Error("Token expirado");
+    }
+    return res;
+}
+
+async function loadDashboard() {
+    await carregarCategorias();
+    await carregarResumo();
+    await carregarTransacoes();
+}
+
+async function carregarResumo() {
+    try {
+        const res = await fetchWithAuth(`${API_URL}/transacoes/resumo`);
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('val-receitas').innerText = `R$ ${data.total_receitas.toFixed(2)}`;
+            document.getElementById('val-despesas').innerText = `R$ ${data.total_despesas.toFixed(2)}`;
+            document.getElementById('val-saldo').innerText = `R$ ${data.saldo_total.toFixed(2)}`;
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function carregarTransacoes() {
+    try {
+        const res = await fetchWithAuth(`${API_URL}/transacoes/`);
+        if (res.ok) {
+            const transacoes = await res.json();
+            const tbody = document.getElementById('transactions-body');
+            tbody.innerHTML = '';
+
+            transacoes.reverse().forEach(t => {
+                const tr = document.createElement('tr');
+                const tipoCor = t.tipo === 'receita' ? '#38a169' : '#e53e3e';
+                
+                tr.innerHTML = `
+                    <td>${t.descricao}</td>
+                    <td style="color: ${tipoCor}; font-weight: 500;">
+                        ${t.tipo === 'despesa' ? '-' : ''} R$ ${t.valor.toFixed(2)}
+                    </td>
+                    <td>
+                        <button class="delete-btn" onclick="deletarTransacao(${t.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function carregarCategorias() {
+    try {
+        const res = await fetchWithAuth(`${API_URL}/categorias/`);
+        if (res.ok) {
+            const categorias = await res.json();
+            
+            // Popula a tabela de categorias
+            const tbody = document.getElementById('categories-body');
+            tbody.innerHTML = '';
+            
+            // Popula o select de transações
+            const select = document.getElementById('trans-categoria');
+            select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+
+            categorias.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.nome}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deletarCategoria(${c.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.innerText = c.nome;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function handleAddCategoria(event) {
+    event.preventDefault();
+    const nome = document.getElementById('cat-nome').value;
+
+    try {
+        const res = await fetchWithAuth(`${API_URL}/categorias/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome })
+        });
+
+        if (res.ok) {
+            document.getElementById('category-form').reset();
+            await carregarCategorias(); // Recarrega as categorias
+        } else {
+            alert("Erro ao criar categoria");
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function deletarCategoria(id) {
+    if (confirm("Excluir esta categoria?")) {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/categorias/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                await carregarCategorias();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
+async function handleAddTransaction(event) {
+    event.preventDefault();
+    const descricao = document.getElementById('trans-desc').value;
+    const valor = parseFloat(document.getElementById('trans-val').value);
+    const tipo = document.getElementById('trans-tipo').value;
+    const categoria_id = parseInt(document.getElementById('trans-categoria').value);
+
+    if (isNaN(categoria_id)) {
+        alert("Por favor, selecione uma categoria.");
+        return;
+    }
+
+    try {
+        const res = await fetchWithAuth(`${API_URL}/transacoes/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ descricao, valor, tipo, categoria_id })
+        });
+
+        if (res.ok) {
+            document.getElementById('transaction-form').reset();
+            loadDashboard(); // Recarrega os dados
+        } else {
+            alert("Erro ao criar transação.");
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function deletarTransacao(id) {
+    if (confirm("Tem certeza que deseja excluir esta transação?")) {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/transacoes/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                loadDashboard();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
