@@ -8,12 +8,17 @@ from datetime import datetime, timedelta, timezone
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
 from jose import JWTError
+import os
+# pyrefly: ignore [missing-import]
+from dotenv import load_dotenv 
 
+load_dotenv()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = ""
-ALGORITHM = "HS256"
-ACESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACESS_TOKEN_EXPIRE_MINUTES", "30"))
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def hash_senha(senha: str) -> str:

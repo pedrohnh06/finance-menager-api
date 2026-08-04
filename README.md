@@ -1,6 +1,6 @@
 # Finance Manager API 💰
 
-Uma API REST moderna para gerenciamento financeiro pessoal, construída com **FastAPI** e **Python**. Este projeto permite que usuários gerenciem suas categorias de gastos e receitas, acompanhem transações detalhadas e obtenham resumos financeiros inteligentes.
+Uma API REST moderna para gerenciamento financeiro pessoal, construída com **FastAPI** e **Python**. Este projeto permite que usuários gerenciem suas categorias de gastos e receitas, acompanhem transações detalhadas e obtenham resumos financeiros inteligentes — tudo protegido por autenticação JWT.
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -9,17 +9,47 @@ Uma API REST moderna para gerenciamento financeiro pessoal, construída com **Fa
 - **SQLite**: Banco de dados leve (ideal para desenvolvimento).
 - **Pydantic**: Validação de dados e serialização (Schemas).
 - **Uvicorn**: Servidor web ASGI.
-- **Passlib & Python-Jose**: Criptografia de senhas e JWT (JSON Web Tokens).
+- **Passlib (bcrypt)**: Criptografia irreversível de senhas.
+- **Python-Jose (JWT)**: Geração e validação de tokens de autenticação.
 
-## ✨ Funcionalidades (Atuais e em Desenvolvimento)
+## ✨ Funcionalidades
 
-- [x] **Categorias**: Criar, listar, editar e excluir categorias (ex: Alimentação, Lazer).
-- [x] **Transações**: Registro de receitas e despesas com vínculo a categorias.
-- [x] **Filtros e Consultas**: Buscar transações por tipo ou categoria específica.
-- [x] **Resumo Financeiro**: Rota inteligente que calcula automaticamente o total de receitas, despesas e saldo.
-- [x] **Segurança Básica**: Criptografia irreversível de senhas usando `bcrypt`.
-- [ ] **Autenticação**: Login com geração de Token JWT (Em andamento).
-- [ ] **Proteção de Rotas**: Usuário acessa apenas as suas próprias transações.
+- [x] **Categorias**: CRUD completo (Criar, Listar, Editar, Excluir).
+- [x] **Transações**: Registro de receitas e despesas vinculadas a categorias.
+- [x] **Filtros e Consultas**: Buscar transações por tipo ou categoria.
+- [x] **Resumo Financeiro**: Cálculo automático de receitas, despesas e saldo.
+- [x] **Cadastro de Usuários**: Com criptografia de senha (bcrypt).
+- [x] **Login com JWT**: Geração de token de acesso com expiração.
+- [x] **Proteção de Rotas**: Todas as rotas exigem autenticação.
+- [x] **Isolamento de Dados**: Cada usuário acessa apenas seus próprios dados.
+
+## 📡 Endpoints da API
+
+### 🔓 Rotas Públicas
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/` | Mensagem de boas-vindas |
+| `POST` | `/usuario/` | Cadastrar novo usuário |
+| `POST` | `/login/` | Fazer login e receber token JWT |
+
+### 🔒 Rotas Protegidas (Requerem Token JWT)
+
+**Categorias**
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/categorias/` | Criar categoria |
+| `GET` | `/categorias/` | Listar categorias do usuário |
+| `PUT` | `/categorias/{id}` | Atualizar categoria |
+| `DELETE` | `/categorias/{id}` | Excluir categoria |
+
+**Transações**
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/transacoes/` | Criar transação |
+| `GET` | `/transacoes/` | Listar transações (com filtros opcionais) |
+| `GET` | `/transacoes/resumo` | Resumo financeiro (receitas, despesas, saldo) |
+| `PATCH` | `/transacoes/{id}` | Atualizar transação parcialmente |
+| `DELETE` | `/transacoes/{id}` | Excluir transação |
 
 ## 📁 Estrutura do Projeto
 
@@ -29,12 +59,13 @@ finance-menager-api/
 │   ├── routers/
 │   │   ├── categorias.py    # Rotas de Categorias
 │   │   ├── transacoes.py    # Rotas de Transações
-│   │   └── usuario.py       # Rotas de Usuário (Cadastro)
-│   ├── auth.py              # Lógica de segurança e JWT
+│   │   ├── login.py         # Rota de Login (JWT)
+│   │   └── usuario.py       # Rota de Cadastro
+│   ├── auth.py              # Lógica de segurança, hash e JWT
 │   ├── database.py          # Configuração do SQLite e SQLAlchemy
 │   ├── main.py              # Ponto de entrada da API
 │   ├── models.py            # Modelos do Banco de Dados
-│   └── schemas.py           # Modelos do Pydantic (Validação)
+│   └── schemas.py           # Schemas Pydantic (Validação)
 ├── .gitignore
 ├── requirements.txt         # Dependências do projeto
 └── README.md
@@ -49,10 +80,9 @@ cd finance-menager-api
 ```
 
 **2. Crie e ative o Ambiente Virtual (.venv)**
-- No Windows (PowerShell):
 ```bash
 python -m venv .venv
-.\.venv\Scripts\activate
+.\.venv\Scripts\activate   # Windows (PowerShell)
 ```
 
 **3. Instale as dependências**
@@ -66,7 +96,15 @@ uvicorn src.main:app --reload
 ```
 
 **5. Acesse a Documentação Interativa (Swagger)**
+
 Abra seu navegador e acesse: `http://127.0.0.1:8000/docs`
+
+## 🔐 Como autenticar no Swagger
+
+1. Crie um usuário em `POST /usuario/`
+2. Clique no botão **Authorize** (🔒) no topo da página
+3. Informe o email no campo `username` e a senha no campo `password`
+4. Clique em **Authorize** — pronto, todas as rotas protegidas estarão liberadas!
 
 ---
 *Projeto construído como jornada de aprendizado em Arquitetura de APIs com Python e FastAPI.*
