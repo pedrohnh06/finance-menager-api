@@ -298,3 +298,16 @@ td {
 .delete-btn:hover {
     text-decoration: underline;
 }
+
+.edit-btn {
+    color: #d69e2e;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.edit-btn:hover {
+    text-decoration: underline;
+}

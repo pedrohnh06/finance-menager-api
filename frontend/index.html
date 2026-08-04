@@ -89,11 +89,12 @@
                         <section class="panel">
                             <h3>Categorias</h3>
                             <form id="category-form" onsubmit="handleAddCategoria(event)" style="margin-bottom: 1.5rem;">
+                                <input type="hidden" id="cat-id-edit">
                                 <div class="input-row">
                                     <div class="input-group" style="margin-bottom: 0;">
                                         <input type="text" id="cat-nome" placeholder="Nova categoria..." required>
                                     </div>
-                                    <button type="submit" class="primary-btn" style="margin-top: 0; width: auto; padding: 0 1rem;">Add</button>
+                                    <button type="submit" id="cat-submit-btn" class="primary-btn" style="margin-top: 0; width: auto; padding: 0 1rem;">Add</button>
                                 </div>
                             </form>
                             <div class="table-container">
@@ -115,6 +116,7 @@
                         <section class="panel new-transaction">
                             <h3>Nova Transação</h3>
                             <form id="transaction-form" onsubmit="handleAddTransaction(event)">
+                                <input type="hidden" id="trans-id-edit">
                                 <div class="input-group">
                                     <label>Descrição</label>
                                     <input type="text" id="trans-desc" required>
@@ -138,7 +140,7 @@
                                         <!-- Preenchido via JS -->
                                     </select>
                                 </div>
-                                <button type="submit" class="primary-btn">Adicionar</button>
+                                <button type="submit" id="trans-submit-btn" class="primary-btn">Adicionar</button>
                             </form>
                         </section>
                     </div>

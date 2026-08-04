@@ -162,6 +162,7 @@ async function carregarTransacoes() {
                         ${t.tipo === 'despesa' ? '-' : ''} R$ ${t.valor.toFixed(2)}
                     </td>
                     <td>
+                        <button class="edit-btn" onclick="prepararEdicaoTransacao(${t.id}, '${t.descricao}', ${t.valor}, '${t.tipo}', ${t.categoria_id})">Editar</button>
                         <button class="delete-btn" onclick="deletarTransacao(${t.id})">Excluir</button>
                     </td>
                 `;
@@ -192,6 +193,7 @@ async function carregarCategorias() {
                 tr.innerHTML = `
                     <td>${c.nome}</td>
                     <td>
+                        <button class="edit-btn" onclick="prepararEdicaoCategoria(${c.id}, '${c.nome}')">Editar</button>
                         <button class="delete-btn" onclick="deletarCategoria(${c.id})">Excluir</button>
                     </td>
                 `;
@@ -208,22 +210,39 @@ async function carregarCategorias() {
     }
 }
 
+async function prepararEdicaoCategoria(id, nome) {
+    document.getElementById('cat-id-edit').value = id;
+    document.getElementById('cat-nome').value = nome;
+    document.getElementById('cat-submit-btn').innerText = 'Salvar';
+}
+
 async function handleAddCategoria(event) {
     event.preventDefault();
     const nome = document.getElementById('cat-nome').value;
+    const idEdit = document.getElementById('cat-id-edit').value;
 
     try {
-        const res = await fetchWithAuth(`${API_URL}/categorias/`, {
-            method: 'POST',
+        let url = `${API_URL}/categorias/`;
+        let method = 'POST';
+
+        if (idEdit) {
+            url = `${API_URL}/categorias/${idEdit}`;
+            method = 'PUT'; // Assumindo PUT para update
+        }
+
+        const res = await fetchWithAuth(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nome })
         });
 
         if (res.ok) {
             document.getElementById('category-form').reset();
-            await carregarCategorias(); // Recarrega as categorias
+            document.getElementById('cat-id-edit').value = '';
+            document.getElementById('cat-submit-btn').innerText = 'Add';
+            await carregarCategorias();
         } else {
-            alert("Erro ao criar categoria");
+            alert("Erro ao salvar categoria");
         }
     } catch (error) {
         console.error(error);
@@ -245,12 +264,22 @@ async function deletarCategoria(id) {
     }
 }
 
+function prepararEdicaoTransacao(id, descricao, valor, tipo, categoria_id) {
+    document.getElementById('trans-id-edit').value = id;
+    document.getElementById('trans-desc').value = descricao;
+    document.getElementById('trans-val').value = valor;
+    document.getElementById('trans-tipo').value = tipo;
+    document.getElementById('trans-categoria').value = categoria_id;
+    document.getElementById('trans-submit-btn').innerText = 'Salvar';
+}
+
 async function handleAddTransaction(event) {
     event.preventDefault();
     const descricao = document.getElementById('trans-desc').value;
     const valor = parseFloat(document.getElementById('trans-val').value);
     const tipo = document.getElementById('trans-tipo').value;
     const categoria_id = parseInt(document.getElementById('trans-categoria').value);
+    const idEdit = document.getElementById('trans-id-edit').value;
 
     if (isNaN(categoria_id)) {
         alert("Por favor, selecione uma categoria.");
@@ -258,17 +287,27 @@ async function handleAddTransaction(event) {
     }
 
     try {
-        const res = await fetchWithAuth(`${API_URL}/transacoes/`, {
-            method: 'POST',
+        let url = `${API_URL}/transacoes/`;
+        let method = 'POST';
+
+        if (idEdit) {
+            url = `${API_URL}/transacoes/${idEdit}`;
+            method = 'PUT'; // Assumindo PUT para update
+        }
+
+        const res = await fetchWithAuth(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ descricao, valor, tipo, categoria_id })
         });
 
         if (res.ok) {
             document.getElementById('transaction-form').reset();
-            loadDashboard(); // Recarrega os dados
+            document.getElementById('trans-id-edit').value = '';
+            document.getElementById('trans-submit-btn').innerText = 'Adicionar';
+            loadDashboard();
         } else {
-            alert("Erro ao criar transação.");
+            alert("Erro ao salvar transação.");
         }
     } catch (error) {
         console.error(error);
