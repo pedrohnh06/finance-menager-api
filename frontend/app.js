@@ -133,9 +133,23 @@ async function loadDashboard() {
     await renderizarGraficos();
 }
 
+function getQueryParams() {
+    const mes = document.getElementById('filter-mes').value;
+    const ano = document.getElementById('filter-ano').value;
+    let params = new URLSearchParams();
+    if (mes) params.append('mes', mes);
+    if (ano) params.append('ano', ano);
+    const queryString = params.toString();
+    return queryString ? `?${queryString}` : '';
+}
+
+function mudarFiltroData() {
+    loadDashboard();
+}
+
 async function carregarResumo() {
     try {
-        const res = await fetchWithAuth(`${API_URL}/transacoes/resumo`);
+        const res = await fetchWithAuth(`${API_URL}/transacoes/resumo${getQueryParams()}`);
         if (res.ok) {
             const data = await res.json();
             document.getElementById('val-receitas').innerText = `R$ ${data.total_receitas.toFixed(2)}`;
@@ -149,7 +163,7 @@ async function carregarResumo() {
 
 async function carregarTransacoes() {
     try {
-        const res = await fetchWithAuth(`${API_URL}/transacoes/`);
+        const res = await fetchWithAuth(`${API_URL}/transacoes/${getQueryParams()}`);
         if (res.ok) {
             const transacoes = await res.json();
             const tbody = document.getElementById('transactions-body');
@@ -337,7 +351,7 @@ async function deletarTransacao(id) {
 // ==========================================
 async function renderizarGraficos() {
     try {
-        const resTransacoes = await fetchWithAuth(`${API_URL}/transacoes/`);
+        const resTransacoes = await fetchWithAuth(`${API_URL}/transacoes/${getQueryParams()}`);
         const resCategorias = await fetchWithAuth(`${API_URL}/categorias/`);
         
         if (!resTransacoes.ok || !resCategorias.ok) return;
