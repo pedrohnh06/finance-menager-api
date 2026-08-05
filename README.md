@@ -9,7 +9,7 @@ Uma API REST moderna para gerenciamento financeiro pessoal, construída com **Fa
 
 - **FastAPI**: Framework web super rápido e moderno.
 - **SQLAlchemy**: ORM para manipulação do banco de dados relacional.
-- **SQLite**: Banco de dados leve (ideal para desenvolvimento).
+- **PostgreSQL / SQLite**: Banco de dados flexível (Postgres na nuvem via Supabase, SQLite para testes locais).
 - **Pydantic**: Validação de dados e serialização (Schemas).
 - **Uvicorn**: Servidor web ASGI.
 - **Passlib (bcrypt)**: Criptografia irreversível de senhas.
@@ -93,7 +93,15 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-**4. Inicie o servidor**
+**4. Configure as Variáveis de Ambiente**
+Crie um arquivo `.env` na raiz do projeto e adicione suas credenciais (veja `src/database.py` e `src/auth.py` para detalhes de chave secreta e conexão).
+Exemplo:
+```env
+SECRET_KEY="sua-chave-secreta"
+DATABASE_URL="postgresql://... (seu link do banco)"
+```
+
+**5. Inicie o servidor**
 ```bash
 uvicorn src.main:app --reload
 ```
