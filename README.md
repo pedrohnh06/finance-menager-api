@@ -19,8 +19,10 @@ Uma API REST moderna para gerenciamento financeiro pessoal, construída com **Fa
 
 - [x] **Categorias**: CRUD completo (Criar, Listar, Editar, Excluir).
 - [x] **Transações**: Registro de receitas e despesas vinculadas a categorias.
-- [x] **Filtros e Consultas**: Buscar transações por tipo ou categoria.
+- [x] **Filtros Temporais**: Buscar transações e resumos por mês e ano.
 - [x] **Resumo Financeiro**: Cálculo automático de receitas, despesas e saldo.
+- [x] **Dashboard Visual (Frontend)**: Integração com Chart.js para gráficos dinâmicos de gastos.
+- [x] **Exportação PDF**: Geração de relatórios completos diretamente no navegador usando jsPDF.
 - [x] **Cadastro de Usuários**: Com criptografia de senha (bcrypt).
 - [x] **Login com JWT**: Geração de token de acesso com expiração.
 - [x] **Proteção de Rotas**: Todas as rotas exigem autenticação.

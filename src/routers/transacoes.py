@@ -16,7 +16,10 @@ router = APIRouter()
 def criar_transacao(transacao: schemas.TransacaoCreate,
  db: Session = Depends(get_db),
  usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
-
+    """
+    Cria uma nova transação (receita ou despesa) associada ao usuário logado.
+    Caso a data não seja enviada, o sistema assumirá o momento atual.
+    """
     nova_transacao = models.Transacao(descricao=transacao.descricao,
     valor=transacao.valor, 
     tipo=transacao.tipo,
@@ -37,6 +40,10 @@ def mostrar_transacao(tipo: Optional[str] = None,
  ano: Optional[int] = None,
  db: Session = Depends(get_db),
  usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual)):
+    """
+    Retorna o histórico de transações do usuário logado.
+    Permite filtros opcionais por tipo (receita/despesa), categoria, mês e ano.
+    """
     query = db.query(
         models.Transacao
         ).filter(
@@ -60,6 +67,10 @@ def resumo_financeiro(db: Session = Depends(get_db),
 mes: Optional[int] = None,
 ano: Optional[int] = None,
 usuario_logado: models.Usuario = Depends(auth.obter_usuario_atual),):
+    """
+    Calcula e retorna o saldo total, total de receitas e total de despesas do usuário.
+    Os cálculos respeitam os filtros de mês e ano, se fornecidos.
+    """
 
     query_despesas = (
         db.query(func.sum(models.Transacao.valor))

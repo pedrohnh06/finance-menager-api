@@ -126,6 +126,10 @@ async function fetchWithAuth(url, options = {}) {
     return res;
 }
 
+/**
+ * Carrega todos os componentes do Dashboard de forma assíncrona.
+ * Essa função é chamada ao entrar na tela principal ou ao alterar filtros.
+ */
 async function loadDashboard() {
     await carregarCategorias();
     await carregarResumo();
@@ -133,6 +137,10 @@ async function loadDashboard() {
     await renderizarGraficos();
 }
 
+/**
+ * Extrai os filtros de data (mês/ano) selecionados pelo usuário.
+ * @returns {string} Query string formatada (ex: "?mes=7&ano=2026")
+ */
 function getQueryParams() {
     const mes = document.getElementById('filter-mes').value;
     const ano = document.getElementById('filter-ano').value;
@@ -147,6 +155,9 @@ function mudarFiltroData() {
     loadDashboard();
 }
 
+/**
+ * Busca o resumo financeiro atualizado na API e atualiza os cartões.
+ */
 async function carregarResumo() {
     try {
         const res = await fetchWithAuth(`${API_URL}/transacoes/resumo${getQueryParams()}`);
@@ -161,6 +172,9 @@ async function carregarResumo() {
     }
 }
 
+/**
+ * Busca e renderiza a lista das últimas transações na tabela.
+ */
 async function carregarTransacoes() {
     try {
         const res = await fetchWithAuth(`${API_URL}/transacoes/${getQueryParams()}`);
@@ -349,6 +363,10 @@ async function deletarTransacao(id) {
 // ==========================================
 // GRÁFICOS E RELATÓRIOS
 // ==========================================
+/**
+ * Coleta as transações filtradas e gera gráficos interativos de rosca 
+ * (por categoria) e de barras (receitas vs despesas) usando Chart.js.
+ */
 async function renderizarGraficos() {
     try {
         const resTransacoes = await fetchWithAuth(`${API_URL}/transacoes/${getQueryParams()}`);
@@ -417,6 +435,10 @@ async function renderizarGraficos() {
     }
 }
 
+/**
+ * Gera um arquivo PDF formatado contendo a tabela de transações 
+ * atual exibida na tela.
+ */
 function exportarParaPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
