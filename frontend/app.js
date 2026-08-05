@@ -1,6 +1,8 @@
 // Configuração base da API
 const API_URL = "https://finance-menager-api.onrender.com";
 let currentToken = localStorage.getItem("token") || null;
+let chartCategoriasInstance = null;
+let chartBalancoInstance = null;
 
 // ==========================================
 // CONTROLE DE TELAS
@@ -128,6 +130,7 @@ async function loadDashboard() {
     await carregarCategorias();
     await carregarResumo();
     await carregarTransacoes();
+    await renderizarGraficos();
 }
 
 async function carregarResumo() {
@@ -327,4 +330,96 @@ async function deletarTransacao(id) {
             console.error(error);
         }
     }
+}
+
+// ==========================================
+// GRÁFICOS E RELATÓRIOS
+// ==========================================
+async function renderizarGraficos() {
+    try {
+        const resTransacoes = await fetchWithAuth(`${API_URL}/transacoes/`);
+        const resCategorias = await fetchWithAuth(`${API_URL}/categorias/`);
+        
+        if (!resTransacoes.ok || !resCategorias.ok) return;
+        
+        const transacoes = await resTransacoes.json();
+        const categorias = await resCategorias.json();
+        
+        const mapCategorias = {};
+        categorias.forEach(c => mapCategorias[c.id] = c.nome);
+        
+        let despesasPorCategoria = {};
+        let totalReceitas = 0;
+        let totalDespesas = 0;
+        
+        transacoes.forEach(t => {
+            if (t.tipo === 'despesa') {
+                totalDespesas += t.valor;
+                const catNome = mapCategorias[t.categoria_id] || "Outros";
+                despesasPorCategoria[catNome] = (despesasPorCategoria[catNome] || 0) + t.valor;
+            } else {
+                totalReceitas += t.valor;
+            }
+        });
+        
+        // Gráfico de Categorias (Rosca)
+        const ctxCat = document.getElementById('chart-categorias').getContext('2d');
+        if (chartCategoriasInstance) chartCategoriasInstance.destroy();
+        chartCategoriasInstance = new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(despesasPorCategoria),
+                datasets: [{
+                    data: Object.values(despesasPorCategoria),
+                    backgroundColor: ['#e53e3e', '#dd6b20', '#d69e2e', '#38a169', '#3182ce', '#805ad5']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+        
+        // Gráfico de Balanço (Barras)
+        const ctxBal = document.getElementById('chart-balanco').getContext('2d');
+        if (chartBalancoInstance) chartBalancoInstance.destroy();
+        chartBalancoInstance = new Chart(ctxBal, {
+            type: 'bar',
+            data: {
+                labels: ['Receitas', 'Despesas'],
+                datasets: [{
+                    label: 'Total R$',
+                    data: [totalReceitas, totalDespesas],
+                    backgroundColor: ['#38a169', '#e53e3e']
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+        
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function exportarParaPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text("Relatório de Transações - FinTrack", 14, 20);
+    
+    doc.autoTable({
+        html: '#transactions-table',
+        startY: 30,
+        theme: 'striped',
+        headStyles: { fillColor: [49, 130, 206] },
+        columns: [
+            { header: 'Descrição', dataKey: 0 },
+            { header: 'Valor', dataKey: 1 }
+        ]
+    });
+    
+    doc.save('fintrack-relatorio.pdf');
 }
